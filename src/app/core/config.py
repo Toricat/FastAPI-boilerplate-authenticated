@@ -14,6 +14,7 @@ class AppSettings(BaseSettings):
     APP_DESCRIPTION: str | None = config("APP_DESCRIPTION", default=None)
     APP_VERSION: str | None = config("APP_VERSION", default=None)
     LICENSE_NAME: str | None = config("LICENSE", default=None)
+    TERMS_OF_SERVICE: str | None = config("TERMS_OF_SERVICE", default=None)
     CONTACT_NAME: str | None = config("CONTACT_NAME", default=None)
     CONTACT_EMAIL: str | None = config("CONTACT_EMAIL", default=None)
 
@@ -96,6 +97,20 @@ class DefaultRateLimitSettings(BaseSettings):
     DEFAULT_RATE_LIMIT_PERIOD: int = config("DEFAULT_RATE_LIMIT_PERIOD", default=3600)
 
 
+class EmailSettings(BaseSettings):
+    EMAILS_FROM_EMAIL: str = config("EMAILS_FROM_EMAIL", default="noreply@example.com")
+    EMAILS_FROM_NAME: str = config("EMAILS_FROM_NAME", default="Project Name")
+    FRONTEND_LINK_ACCOUNT_ACTIVATION: str = config("FRONTEND_LINK_ACCOUNT_ACTIVATION", default="http://localhost:3000/auth/activation")
+    FRONTEND_LINK_CHANGE_PASSWORD: str = config("FRONTEND_LINK_CHANGE_PASSWORD", default="http://localhost:3000/auth/recovery/changepassword")
+    SMTP_HOST: str = config("SMTP_HOST", default="smtp.gmail.com")
+    SMTP_PORT: int = config("SMTP_PORT", cast=int, default=587)
+    SMTP_USER: str = config("SMTP_USER", default="")
+    SMTP_PASSWORD: str = config("SMTP_PASSWORD", default="")
+    SMTP_TLS: bool = config("SMTP_TLS", cast=bool, default=False)
+    SMTP_SSL: bool = config("SMTP_SSL", cast=bool, default=True)
+    emails_enabled: bool = True if SMTP_USER and SMTP_PASSWORD else False
+
+
 class EnvironmentOption(Enum):
     LOCAL = "local"
     STAGING = "staging"
@@ -104,6 +119,13 @@ class EnvironmentOption(Enum):
 
 class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default="local")
+
+
+class CorsSettings(BaseSettings):
+    CORS_ORIGINS: list[str] = config("CORS_ORIGINS", default=["http://localhost:3000"])
+    CORS_METHODS: list[str] = config("CORS_METHODS", default=["*"])
+    CORS_HEADERS: list[str] = config("CORS_HEADERS", default=["*"])
+    CORS_CREDENTIALS: bool = config("CORS_CREDENTIALS", cast=bool, default=True)
 
 
 class Settings(
@@ -117,7 +139,9 @@ class Settings(
     RedisQueueSettings,
     RedisRateLimiterSettings,
     DefaultRateLimitSettings,
+    EmailSettings,
     EnvironmentSettings,
+    CorsSettings,
 ):
     pass
 

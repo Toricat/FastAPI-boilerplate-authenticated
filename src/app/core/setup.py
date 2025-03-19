@@ -8,11 +8,13 @@ import redis.asyncio as redis
 from arq import create_pool
 from arq.connections import RedisSettings
 from fastapi import APIRouter, Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
 
 from ..api.dependencies import get_current_superuser
 from ..core.utils.rate_limit import rate_limiter
+from ..api import router as api_router
 from ..middleware.client_cache_middleware import ClientCacheMiddleware
 from ..models import *
 from .config import (
@@ -29,7 +31,6 @@ from .config import (
 from .db.database import Base
 from .db.database import async_engine as engine
 from .utils import cache, queue
-
 
 # -------------- database --------------
 async def create_tables() -> None:
@@ -177,22 +178,29 @@ def create_application(
     based on the environment settings.
     """
     # --- before creating application ---
-    if isinstance(settings, AppSettings):
-        to_update = {
-            "title": settings.APP_NAME,
-            "description": settings.APP_DESCRIPTION,
-            "contact": {"name": settings.CONTACT_NAME, "email": settings.CONTACT_EMAIL},
-            "license_info": {"name": settings.LICENSE_NAME},
-        }
-        kwargs.update(to_update)
-
-    if isinstance(settings, EnvironmentSettings):
-        kwargs.update({"docs_url": None, "redoc_url": None, "openapi_url": None})
-
     lifespan = lifespan_factory(settings, create_tables_on_start=create_tables_on_start)
 
-    application = FastAPI(lifespan=lifespan, **kwargs)
+    application = FastAPI(
+        title=settings.APP_NAME,
+        description=settings.APP_DESCRIPTION,
+        contact={"name": settings.CONTACT_NAME, "email": settings.CONTACT_EMAIL},
+        license_info={"name": settings.LICENSE_NAME},
+        terms_of_service=settings.TERMS_OF_SERVICE,
+        lifespan=lifespan,
+        **kwargs
+    )
+    
+    # Add CORS middleware
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.CORS_ORIGINS,
+        allow_credentials=settings.CORS_CREDENTIALS,
+        allow_methods=settings.CORS_METHODS,
+        allow_headers=settings.CORS_HEADERS,
+    )
+
     application.include_router(router)
+
 
     if isinstance(settings, ClientSideCacheSettings):
         application.add_middleware(ClientCacheMiddleware, max_age=settings.CLIENT_CACHE_MAX_AGE)

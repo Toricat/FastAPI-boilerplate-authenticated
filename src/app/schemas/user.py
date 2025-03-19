@@ -7,25 +7,29 @@ from ..core.schemas import PersistentDeletion, TimestampSchema, UUIDSchema
 
 
 class UserBase(BaseModel):
-    name: Annotated[str, Field(min_length=2, max_length=30, examples=["User Userson"])]
+    name: Annotated[str, Field(min_length=2, max_length=30, examples=["User Example"])]
     username: Annotated[str, Field(min_length=2, max_length=20, pattern=r"^[a-z0-9]+$", examples=["userson"])]
-    email: Annotated[EmailStr, Field(examples=["user.userson@example.com"])]
+    email: Annotated[EmailStr, Field(examples=["user@example.com"])]
 
 
 class User(TimestampSchema, UserBase, UUIDSchema, PersistentDeletion):
     profile_image_url: Annotated[str, Field(default="https://www.profileimageurl.com")]
     hashed_password: str
     is_superuser: bool = False
+    is_active: bool = False
+    last_login: datetime | None = None
     tier_id: int | None = None
 
 
 class UserRead(BaseModel):
     id: int
-
-    name: Annotated[str, Field(min_length=2, max_length=30, examples=["User Userson"])]
-    username: Annotated[str, Field(min_length=2, max_length=20, pattern=r"^[a-z0-9]+$", examples=["userson"])]
-    email: Annotated[EmailStr, Field(examples=["user.userson@example.com"])]
+    name: Annotated[str, Field(min_length=2, max_length=30, examples=["User Example"])]
+    username: Annotated[str, Field(min_length=2, max_length=20, pattern=r"^[a-z0-9]+$", examples=["userberg"])]
+    email: Annotated[EmailStr, Field(examples=["user@example.com"])]
     profile_image_url: str
+    is_active: bool
+    is_superuser: bool
+    last_login: datetime | None
     tier_id: int | None
 
 
@@ -37,16 +41,19 @@ class UserCreate(UserBase):
 
 class UserCreateInternal(UserBase):
     hashed_password: str
+    is_active: bool = False
+    is_superuser: bool = False
+    last_login: datetime | None = None
 
 
 class UserUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    name: Annotated[str | None, Field(min_length=2, max_length=30, examples=["User Userberg"], default=None)]
+    name: Annotated[str | None, Field(min_length=2, max_length=30, examples=["User Example"], default=None)]
     username: Annotated[
         str | None, Field(min_length=2, max_length=20, pattern=r"^[a-z0-9]+$", examples=["userberg"], default=None)
     ]
-    email: Annotated[EmailStr | None, Field(examples=["user.userberg@example.com"], default=None)]
+    email: Annotated[EmailStr | None, Field(examples=["userg@example.com"], default=None)]
     profile_image_url: Annotated[
         str | None,
         Field(

@@ -1923,3 +1923,85 @@ This project was inspired by a few projects, it's based on them with things chan
 
 Igor Magalhaes – [@igormagalhaesr](https://twitter.com/igormagalhaesr) – igormagalhaesr@gmail.com
 [github.com/igorbenav](https://github.com/igorbenav/)
+
+# Manual Migration Guide
+
+## Running Migrations Locally
+
+If you want to run migrations manually without Docker, follow these steps:
+
+1. First, ensure you have all dependencies installed:
+```bash
+poetry install
+```
+
+2. Make sure your database is running and accessible.
+
+3. Navigate to the src directory:
+```bash
+cd src
+```
+
+4. Create a new migration (if needed):
+```bash
+# Generate a new migration
+poetry run alembic revision --autogenerate -m "your migration description"
+```
+
+5. Apply migrations:
+```bash
+# Apply all pending migrations
+poetry run alembic upgrade head
+
+# Or apply specific migration
+poetry run alembic upgrade <revision_id>
+
+# To downgrade
+poetry run alembic downgrade -1  # Go back one migration
+poetry run alembic downgrade <revision_id>  # Go back to specific revision
+```
+
+6. Check migration status:
+```bash
+# View current migration status
+poetry run alembic current
+
+# View migration history
+poetry run alembic history
+```
+
+## Troubleshooting Migrations
+
+If you encounter issues with migrations:
+
+1. Check if your database is accessible and credentials are correct in `.env`
+
+2. Reset migrations (if needed):
+```bash
+# Remove all tables
+poetry run alembic downgrade base
+
+# Then reapply all migrations
+poetry run alembic upgrade head
+```
+
+3. If you get "Target database is not up to date" error:
+```bash
+# Stamp the database with current migration without running it
+poetry run alembic stamp head
+```
+
+4. To check what SQL will be generated without running the migration:
+```bash
+poetry run alembic upgrade head --sql
+```
+
+## Migration Best Practices
+
+1. Always backup your database before running migrations in production
+2. Test migrations in development environment first
+3. Review generated migrations before applying them
+4. Keep migrations small and focused
+5. Add meaningful descriptions to your migrations
+6. Use `--sql` flag to review SQL before applying migrations
+7. Consider data migrations impact on production database
